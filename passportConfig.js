@@ -1,46 +1,52 @@
-const LocalStrategy = require('passport-local').Strategy;
-const { User } = require('./database');
+// passportConfig.js
 
-exports.initializingPassport = (passport) => {
-    passport.use(
-        new LocalStrategy(async (username, password, done) => {
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const bcrypt = require('bcrypt');
+const User = require('./models/User');
+
+passport.use(
+    //if your default username is email then no need to declare {username: 'email'}
+    new LocalStrategy(
+        { usernameField: 'email' },
+        async (email, password, done) => {
             try {
-                const user = await User.findOne({ username });
-
+                const user = await User.findOne({ email });
                 if (!user) {
-                    return done(null, false);
+                    return done(null, false, {
+                        message: 'Invalid credentials',
+                    });
                 }
-
-                if (user.password !== password) {
-                    return done(null, false);
+                const isMatch = await bcrypt.compare(password, user.password);
+                if (isMatch) {
+                    return done(null, user);
+                } else {
+                    return done(null, false, {
+                        message: 'Invalid credentials',
+                    });
                 }
-
-                return done(null, user);
-            } catch (error) {
-                return done(error, false);
+            } catch (err) {
+                return done(err);
             }
-        }),
-    );
+        },
+    ),
+);
 
-    // get user id
-    passport.serializeUser((user, done) => {
+passport.serializeUser(async (user, done) => {
+    try {
         done(null, user.id);
-    });
-
-    // find user
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const user = await User.findById(id);
-            done(null, user);
-        } catch (error) {
-            done(error, false);
-        }
-    });
-};
-
-exports.isAuthenticated = (req, res, next) => {
-    if (req.user) {
-        return next();
+    } catch (err) {
+        done(err, null);
     }
-    res.redirect('/login');
-};
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await User.findById(id);
+        done(null, user);
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+module.exports = passport;

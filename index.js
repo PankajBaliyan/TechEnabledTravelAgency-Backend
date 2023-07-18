@@ -51,8 +51,6 @@ connectMongoose();
 app.use('/auth', authRoutes);
 app.use('/auth', packagesRotes);
 
-
-
 // Start server
 app.listen(port, () =>
     console.log(`Server listening on port http://localhost:${port}`),

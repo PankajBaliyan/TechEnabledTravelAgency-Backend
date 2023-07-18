@@ -2,7 +2,10 @@
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
+
+// Routes Import
 const authRoutes = require('./routes/authRoutes');
+const packagesRotes = require('./routes/package.js')
 
 // env setup
 require('dotenv').config();
@@ -46,6 +49,9 @@ connectMongoose();
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/auth', packagesRotes);
+
+
 
 // Start server
 app.listen(port, () =>

@@ -5,7 +5,7 @@ const passport = require('passport');
 
 // Routes Import
 const authRoutes = require('./routes/authRoutes');
-const packagesRotes = require('./routes/package.js')
+const packagesRotes = require('./routes/package.js');
 
 // env setup
 require('dotenv').config();

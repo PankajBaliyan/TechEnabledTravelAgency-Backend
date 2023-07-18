@@ -81,3 +81,49 @@ exports.logout = (req, res) => {
         }
     });
 };
+
+//Get User Details
+exports.getUserDetails = (req, res) => {
+    const userId = req.params.id;
+
+    User.findById(userId)
+        .then((user) => {
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            res.json(user);
+        })
+        .catch((error) => {
+            console.error('Failed to get user details', error);
+            res.status(500).json({ message: 'Failed to get user details' });
+        });
+};
+
+//Update Password
+exports.updatePassword = async (req, res) => {
+    const userId = req.params.id;
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res
+                .status(401)
+                .json({ message: 'Incorrect current password' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error('Failed to update password', error);
+        res.status(500).json({ message: 'Failed to update password' });
+    }
+};
